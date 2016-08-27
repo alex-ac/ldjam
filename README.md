@@ -45,5 +45,4 @@ Go to telegram and say `/start` to user game\_name\_bot.
  * Make commands loadable from python files;
  * Allow to modify scripts without restart;
  * !!!Make some real quests!!!;
- * Use templates for messages;
 
