@@ -42,7 +42,6 @@ Go to telegram and say `/start` to user game\_name\_bot.
 
  * Use telegram webhook api;
  * Use facebook api;
- * Make commands loadable from python files;
  * Allow to modify scripts without restart;
  * !!!Make some real quests!!!;
 

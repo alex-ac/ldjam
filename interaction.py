@@ -1,5 +1,7 @@
 import yaml
+import sys
 import os
+import importlib
 
 from jinja2 import Template
 
@@ -13,8 +15,12 @@ class Interaction(object):
         self.next = next
 
     @classmethod
+    def resolve_path(cls, path):
+        return os.path.join(os.path.dirname(os.path.abspath(__file__)), 'game', path)
+
+    @classmethod
     def load(cls, name):
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'game', name + '.yaml')) as f:
+        with open(cls.resolve_path(name + '.yaml')) as f:
             return cls(**yaml.load(f.read()))
 
     def resolve_text(self, context, value):
@@ -36,10 +42,11 @@ class Interaction(object):
         return Template(text).render(**context.as_dict())
 
     def process_cmd(self, context, cmd, *args):
-        if cmd == 'set_language':
-            context.language = args[0]
-        if cmd == 'reset':
-            context.reset()
+        if self.resolve_path('') not in sys.path:
+            sys.path.append(self.resolve_path(''))
+        module = importlib.import_module(cmd)
+        module = importlib.reload(module)
+        module.run(context, *args)
 
     def run(self, context, bot):
         keyboard=Keyboard([
