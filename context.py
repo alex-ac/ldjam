@@ -4,11 +4,7 @@ class Context(object):
         self.reset()
 
     def as_dict(self):
-        return {
-            'chat_id': self.chat.id,
-            'username': self.chat.username,
-            'language': self.language,
-        }
+        return self.__dict__
 
     def reset(self):
         self.language = None

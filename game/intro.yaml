@@ -2,7 +2,9 @@ text: |
   Ты как обычно проснулся на поляне. Ты немного хочешь есть.
 keyboard:
   - label: Осмотрюсь вокруг
+    next: lookaround
   - label: Посплю еще немного
+    next: intro
 fallback:
   en: What you said? Please use reply keyboard.
   ru: Что ты сказал(а)? Пожалуйста, используй клавиатуру с ответами. 

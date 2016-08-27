@@ -1,3 +1,3 @@
-def run(context, language):
+def run(context, bot, language):
     context.language = language
 

@@ -41,23 +41,30 @@ class Interaction(object):
                 text = '<couldnotloadtext>'
         return Template(text).render(**context.as_dict())
 
-    def process_cmd(self, context, cmd, *args):
+    def process_cmd(self, context, bot, cmd, *args):
         if self.resolve_path('') not in sys.path:
             sys.path.append(self.resolve_path(''))
         module = importlib.import_module(cmd)
         module = importlib.reload(module)
-        module.run(context, *args)
+        return module.run(context, bot, *args)
 
     def run(self, context, bot):
-        keyboard=Keyboard([
-            Button(self.resolve_text(context, button.get('label')))
-            for button in self.keyboard])
+        buttons = []
+        for button in self.keyboard:
+            hide_if = button.get('hide_if')
+            if hide_if:
+                if self.process_cmd(context, bot, *hide_if):
+                    continue
+            buttons.append(Button(self.resolve_text(context, button.get('label'))))
+
+        keyboard=Keyboard(buttons)
         bot.send(
             context.chat,
             self.resolve_text(context, self.text),
             keyboard=keyboard)
 
         ok = False
+        next_interaction = self.next
         while not ok:
             reply = yield
             for button in self.keyboard:
@@ -65,7 +72,8 @@ class Interaction(object):
                     ok = True
                     cmd = button.get('cmd')
                     if cmd:
-                        self.process_cmd(context, *cmd)
+                        self.process_cmd(context, bot, *cmd)
+                    next_interaction = button.get('next', next_interaction)
                     break
             if not ok:
                 bot.send(
@@ -73,4 +81,4 @@ class Interaction(object):
                     self.resolve_text(context, self.fallback),
                     keyboard=keyboard)
 
-        yield self.next
+        yield next_interaction

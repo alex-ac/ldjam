@@ -1,0 +1,24 @@
+text: |
+  Ничего примечательного, на земле валяется несколько веток,
+  неподалеку видны несколько деревьев.
+keyboard:
+  - label: Возьму ветку
+    cmd:
+      - inventory
+      - put
+      - stick
+    next: lookaround
+    hide_if:
+      - inventory
+      - has
+      - stick
+  - label: Посмотрю, что в карманах
+    next: lookaround
+    hide_if:
+      - inventory
+      - is empty
+  - label: Пойду к деревьям
+fallback:
+  en: What you said? Please use reply keyboard.
+  ru: Что ты сказал(а)? Пожалуйста, используй клавиатуру с ответами. 
+next: todo

@@ -1,10 +1,10 @@
 text:
   en: |
-    Hello{% if username %}, {{username}}{% endif %}.
+    Hello{% if chat.username %}, {{chat.username}}{% endif %}.
     I am a "Invent or die" game bot.
     Pleas tell me what language you will use.
   ru: |
-    Привет{% if username %}, {{username}}{% endif %}.
+    Привет{% if chat.username %}, {{chat.username}}{% endif %}.
     Я бот игры "Изобрети или умри".
     Скажи мне, на каком языке разговаривать с тобой.
 keyboard:
