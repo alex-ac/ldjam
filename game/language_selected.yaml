@@ -5,11 +5,9 @@ text:
   ru: |
     Хорошо, я буду говорить по русски, если ты так хочешь.
     Приступим к игре!
-keyboard:
-  - label:
-      ru: Да, начнем.
-      en: Yes, let's start.
+button:
+  ru: Да, начнем.
+  en: Yes, let's start.
 fallback:
   en: What you said? Please use reply keyboard.
   ru: Что ты сказал(а)? Пожалуйста, используй клавиатуру с ответами. 
-next: intro

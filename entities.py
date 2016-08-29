@@ -43,11 +43,12 @@ class Keyboard(object):
 
     def as_dict(self):
         return {
-            'keyboard': [[{'text': button.text}] for button in self.buttons],
+            'keyboard': [[{'text': button.text} for button in row] for row in self.buttons],
             'resize_keyboard': True,
             'one_time_keyboard': True,
         }
 
 class Button(object):
-    def __init__(self, text):
+    def __init__(self, text, on_click):
         self.text = text
+        self.on_click = on_click

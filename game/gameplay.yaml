@@ -1,0 +1,28 @@
+text: |
+  x:{{location.x}} y:{{location.y}}
+  {{location.description|localize}}
+  {% for item in location.items %}
+    {{item.description|localize}}
+  {% endfor %}
+keyboard:
+  - - label: "\U0001F6AB"
+      hide_if: inventory exists
+    - label: "\U0001F392"
+      show_if: inventory exists
+    - label: ⬆️
+      cmd: loc move forward
+    - label: "\U0001F6AB"
+      hide_if: inventory can_take
+    - label: Поднять {{location.items[0].name|localize}}
+      show_if: inventory can_take
+      cmd: inventory take
+  - - label: ⬅️
+      cmd: loc move left
+    - label: ⬇️
+      cmd: loc move back
+    - label: ➡️
+      cmd: loc move right
+fallback:
+  en: What you said? Please use reply keyboard.
+  ru: Что ты сказал(а)? Пожалуйста, используй клавиатуру с ответами. 
+next: gameplay

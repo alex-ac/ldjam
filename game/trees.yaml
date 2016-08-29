@@ -1,0 +1,14 @@
+text: |
+  На деревьях висят какие-то фрукты. Но они высоко.
+  {% if item_in_hands == 'apple' %}Тебе удалось сорвать яблоко{% endif %}
+keyboard:
+  - label: Попытаться допрыгнуть
+    hide_if: inventory has stick
+    next: trees
+  - label: Попытаться сбить палкой
+    show_if: inventory has stick
+    cmd: inventory take apple
+    next: trees
+  - label: Вернуться на поляну
+    next: lookaround
+next: todo

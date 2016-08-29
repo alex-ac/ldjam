@@ -1,3 +1,5 @@
+from map import Map
+
 class Context(object):
     def __init__(self, chat):
         self.chat = chat
@@ -8,5 +10,7 @@ class Context(object):
 
     def reset(self):
         self.language = None
-
-
+        self.location = None
+        self.item_in_hands = None
+        self.inventory = None
+        self.map = Map()

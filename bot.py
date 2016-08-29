@@ -61,14 +61,18 @@ class Bot(object):
         if message is not None:
             return Message(**message)
 
-    def wait_message(self, chat):
-        yield
-
     def process(self, chat, next_interaction):
         while next_interaction is not None:
-            self.chats[chat.id] = Interaction.load(next_interaction).run(
-                self.contexts[chat.id], self)
-            next_interaction = next(self.chats[chat.id])
+            context = self.contexts[chat.id]
+            if chat.id in self.chats:
+                self.chats[chat.id].on_finish()
+                del self.chats[chat.id]
+            interaction = Interaction.load(context, self, next_interaction)
+            if interaction is None:
+                continue
+            self.chats[chat.id] = interaction
+            self.chats[chat.id].on_start()
+            next_interaction = self.chats[chat.id].run()
 
     def run(self):
         while True:
@@ -82,9 +86,11 @@ class Bot(object):
                 message = update.message
 
                 if message.chat.id in self.chats:
-                    self.process(message.chat, self.chats[message.chat.id].send(message))
+                    interaction = self.chats[message.chat.id]
+                    self.process(message.chat, interaction.on_message(message))
                 else:
                     self.contexts[message.chat.id] = Context(message.chat)
+                    context = self.contexts[message.chat.id]
                     self.process(message.chat, 'hello')
 
 

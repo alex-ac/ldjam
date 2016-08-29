@@ -2,83 +2,91 @@ import yaml
 import sys
 import os
 import importlib
+import itertools
+from traceback import print_exc
 
-from jinja2 import Template
+from jinja2 import Template, Environment
 
 from entities import Keyboard, Button
 
 class Interaction(object):
-    def __init__(self, text={}, keyboard={}, fallback={}, next=None):
-        self.text = text
-        self.keyboard = keyboard
-        self.fallback = fallback
-        self.next = next
+    def __init__(self, context, bot, name):
+        self.name = name
+        self.context = context
+        self.bot = bot
+
+        self.env = Environment()
+        self.env.filters['localize'] = lambda text:self.get_text(text)
+
+        with open(self.resolve_path(self.name + '.yaml')) as f:
+            self.l10n = yaml.safe_load(f.read())
 
     @classmethod
     def resolve_path(cls, path):
         return os.path.join(os.path.dirname(os.path.abspath(__file__)), 'game', path)
 
     @classmethod
-    def load(cls, name):
-        with open(cls.resolve_path(name + '.yaml')) as f:
-            return cls(**yaml.load(f.read()))
+    def load(cls, context, bot, name):
+        try:
+            module = importlib.import_module('game.' + name)
+            module = importlib.reload(module)
+            cls_name = next(iter(module.__all__))
+            cls = getattr(module, cls_name)
+            return cls(context, bot, name)
+        except:
+            print_exc()
 
-    def resolve_text(self, context, value):
+    def get_text(self, key):
         text = ''
-        if context.language is None:
+        value = self.l10n.get(key, '')
+
+        if self.context.language is None:
             if isinstance(value, dict):
                 text = '\n'.join(t for t in value.values())
             elif isinstance(value, str):
                 text = value
             else:
-                text ='<couldnotloadtext>'
-        else:
-            if isinstance(value, dict):
-                text =  value.get(context.language, '<couldnotloadtext>')
-            elif isinstance(self.text, str):
-                text = value
-            else:
-                text = '<couldnotloadtext>'
-        return Template(text).render(**context.as_dict())
+                text = str(value)
+        elif isinstance(value, dict):
+            text = value.get(self.context.language)
+            if text is None:
+                text = next(value.values())
+        elif isinstance(value, str):
+            text = value
 
-    def process_cmd(self, context, bot, cmd, *args):
-        if self.resolve_path('') not in sys.path:
-            sys.path.append(self.resolve_path(''))
-        module = importlib.import_module(cmd)
-        module = importlib.reload(module)
-        return module.run(context, bot, *args)
+        try:
+            return self.env.from_string(text).render(**self.context.as_dict())
+        except:
+            print_exc()
+            return ''
 
-    def run(self, context, bot):
-        buttons = []
-        for button in self.keyboard:
-            hide_if = button.get('hide_if')
-            if hide_if:
-                if self.process_cmd(context, bot, *hide_if):
-                    continue
-            buttons.append(Button(self.resolve_text(context, button.get('label'))))
+    def on_start(self):
+        pass
 
-        keyboard=Keyboard(buttons)
-        bot.send(
-            context.chat,
-            self.resolve_text(context, self.text),
-            keyboard=keyboard)
+    def text(self):
+        return self.get_text('text')
 
-        ok = False
-        next_interaction = self.next
-        while not ok:
-            reply = yield
-            for button in self.keyboard:
-                if reply.text == self.resolve_text(context, button.get('label')):
-                    ok = True
-                    cmd = button.get('cmd')
-                    if cmd:
-                        self.process_cmd(context, bot, *cmd)
-                    next_interaction = button.get('next', next_interaction)
-                    break
-            if not ok:
-                bot.send(
-                    context.chat,
-                    self.resolve_text(context, self.fallback),
-                    keyboard=keyboard)
+    def fallback(self):
+        return self.get_text('fallback')
 
-        yield next_interaction
+    def keyboard(self):
+        return Keyboard([[]])
+ 
+    def run(self):
+        self.bot.send(
+            self.context.chat,
+            self.text(),
+            keyboard=self.keyboard())
+
+    def on_message(self, reply):
+        for button in itertools.chain(*self.keyboard().buttons):
+            if reply.text == button.text:
+                return button.on_click()
+
+        self.bot.send(
+            self.context.chat,
+            self.fallback(),
+            keyboard=self.keyboard())
+
+    def on_finish(self):
+        pass
